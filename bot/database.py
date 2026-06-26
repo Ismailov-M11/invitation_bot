@@ -1,15 +1,26 @@
 import asyncio
 from contextlib import contextmanager
+from urllib.parse import urlparse
 
-import psycopg2
-import psycopg2.extras
+import pg8000.dbapi
 
-_dsn: str = ""
+_params: dict = {}
+
+
+def _parse_dsn(dsn: str) -> dict:
+    u = urlparse(dsn)
+    return {
+        "host": u.hostname,
+        "port": u.port or 5432,
+        "database": u.path.lstrip("/"),
+        "user": u.username,
+        "password": u.password,
+    }
 
 
 @contextmanager
 def _conn():
-    c = psycopg2.connect(_dsn)
+    c = pg8000.dbapi.connect(**_params)
     try:
         yield c
         c.commit()
@@ -27,14 +38,15 @@ def _execute_sync(sql: str, params: tuple = ()) -> None:
 
 def _fetchall_sync(sql: str, params: tuple = ()) -> list[dict]:
     with _conn() as c:
-        cur = c.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur = c.cursor()
         cur.execute(sql, params)
-        return [dict(r) for r in cur.fetchall()]
+        cols = [d[0] for d in cur.description]
+        return [dict(zip(cols, row)) for row in cur.fetchall()]
 
 
 async def init_db(dsn: str) -> None:
-    global _dsn
-    _dsn = dsn
+    global _params
+    _params = _parse_dsn(dsn)
     await asyncio.to_thread(_execute_sync, """
         CREATE TABLE IF NOT EXISTS actions (
             id         SERIAL PRIMARY KEY,
