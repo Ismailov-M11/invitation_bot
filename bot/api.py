@@ -1,6 +1,7 @@
 from aiohttp import web
 
 from bot import database
+from bot.session import AUTHENTICATED
 from config import OWNER_CHAT_ID, OWNER_THREAD_ID, API_SECRET
 
 CORS = {
@@ -47,19 +48,24 @@ async def _card_copied(request: web.Request) -> web.Response:
         lines.append(f"👤 Ism: *{name}*")
         if amount:
             lines.append(f"💰 Miqdor: *{amount}*")
-        if guest_uz:
-            taklif = guest_uz + (f" / {guest_ru}" if guest_ru else "")
-            lines.append(f"🎫 Taklif: {taklif}")
         lines.append("\n✅ Karta raqami nusxalandi")
 
+        bot = request.app["bot"]
+        text = "\n".join(lines)
+
         if OWNER_CHAT_ID:
-            bot = request.app["bot"]
             await bot.send_message(
                 OWNER_CHAT_ID,
-                "\n".join(lines),
+                text,
                 parse_mode="Markdown",
                 message_thread_id=OWNER_THREAD_ID,
             )
+
+        for user_id in list(AUTHENTICATED):
+            try:
+                await bot.send_message(user_id, text, parse_mode="Markdown")
+            except Exception:
+                pass
 
         return web.json_response({"ok": True}, headers=CORS)
 
