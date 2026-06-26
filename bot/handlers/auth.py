@@ -6,6 +6,7 @@ from aiogram.types import Message
 from bot.keyboards import main_menu_kb
 from bot.session import AUTHENTICATED
 from bot.states import AuthState
+from bot import database
 from config import PASSWORD
 
 router = Router()
@@ -28,6 +29,11 @@ async def cmd_start(message: Message, state: FSMContext) -> None:
 async def check_password(message: Message, state: FSMContext) -> None:
     if message.text == PASSWORD:
         AUTHENTICATED.add(message.from_user.id)
+        await database.add_auth_user(
+            message.from_user.id,
+            message.from_user.username,
+            message.from_user.first_name,
+        )
         await state.clear()
         await message.answer(
             "✅ Parol to'g'ri! Xush kelibsiz 🎊\n\n"

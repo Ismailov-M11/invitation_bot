@@ -21,27 +21,30 @@ async def show_stats(message: Message) -> None:
         await message.answer("🔐 /start")
         return
 
-    stats = await database.get_stats()
-    recent = await database.get_recent(8)
+    try:
+        stats = await database.get_stats()
+        recent = await database.get_recent(8)
 
-    lines = ["📊 *Statistika*\n"]
-    if stats:
-        for row in stats:
-            label = ACTION_NAMES.get(row["action"], row["action"])
-            lines.append(f"• {label}: *{row['cnt']}* ta")
-    else:
-        lines.append("_Hali ma'lumot yo'q_")
+        lines = ["📊 *Statistika*\n"]
+        if stats:
+            for row in stats:
+                label = ACTION_NAMES.get(row["action"], row["action"])
+                lines.append(f"• {label}: *{row['cnt']}* ta")
+        else:
+            lines.append("_Hali ma'lumot yo'q_")
 
-    if recent:
-        lines.append("\n🕐 *Oxirgi harakatlar:*")
-        for r in recent:
-            name = r["first_name"] or "—"
-            user = f"@{r['username']}" if r["username"] else "?"
-            act = ACTION_NAMES.get(r["action"], r["action"])
-            extra = f"\n  _{r['extra']}_" if r["extra"] and r["action"] == "created_guest_link" else ""
-            lines.append(f"• {name} ({user}) — {act}{extra}")
+        if recent:
+            lines.append("\n🕐 *Oxirgi harakatlar:*")
+            for r in recent:
+                name = r["first_name"] or "—"
+                user = f"@{r['username']}" if r["username"] else "?"
+                act = ACTION_NAMES.get(r["action"], r["action"])
+                extra = f"\n  _{r['extra']}_" if r["extra"] and r["action"] == "created_guest_link" else ""
+                lines.append(f"• {name} ({user}) — {act}{extra}")
 
-    await message.answer("\n".join(lines), parse_mode="Markdown")
+        await message.answer("\n".join(lines), parse_mode="Markdown")
+    except Exception as e:
+        await message.answer(f"❌ Xato: `{e}`", parse_mode="Markdown")
 
 
 @router.message(F.text == "💌 To'yona ro'yxati")
@@ -50,23 +53,26 @@ async def show_card_copies(message: Message) -> None:
         await message.answer("🔐 /start")
         return
 
-    rows = await database.get_card_copies(50)
+    try:
+        rows = await database.get_card_copies(50)
 
-    if not rows:
-        await message.answer("_Hali hech kim karta raqamini nusxalamagan_", parse_mode="Markdown")
-        return
+        if not rows:
+            await message.answer("_Hali hech kim karta raqamini nusxalamagan_", parse_mode="Markdown")
+            return
 
-    lines = [f"💌 *To'yona niyati ro'yxati* ({len(rows)} ta)\n"]
-    for i, r in enumerate(rows, 1):
-        name = r["name"]
-        amount = f" — *{r['amount']}*" if r["amount"] else ""
-        guest = ""
-        if r["guest_uz"]:
-            guest = f"\n   🎫 _{r['guest_uz']}"
-            if r["guest_ru"]:
-                guest += f" / {r['guest_ru']}"
-            guest += "_"
-        dt = r["copied_at"].strftime("%d.%m %H:%M") if r["copied_at"] else ""
-        lines.append(f"{i}. *{name}*{amount} `{dt}`{guest}")
+        lines = [f"💌 *To'yona niyati ro’yxati* ({len(rows)} ta)\n"]
+        for i, r in enumerate(rows, 1):
+            name = r["name"]
+            amount = f" — *{r['amount']}*" if r["amount"] else ""
+            guest = ""
+            if r["guest_uz"]:
+                guest = f"\n   \U0001f39f _{r['guest_uz']}"
+                if r["guest_ru"]:
+                    guest += f" / {r['guest_ru']}"
+                guest += "_"
+            dt = r["copied_at"].strftime("%d.%m %H:%M") if r["copied_at"] else ""
+            lines.append(f"{i}. *{name}*{amount} `{dt}`{guest}")
 
-    await message.answer("\n".join(lines), parse_mode="Markdown")
+        await message.answer("\n".join(lines), parse_mode="Markdown")
+    except Exception as e:
+        await message.answer(f"❌ Xato: `{e}`", parse_mode="Markdown")

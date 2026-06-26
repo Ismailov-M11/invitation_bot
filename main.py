@@ -7,6 +7,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from config import BOT_TOKEN, DATABASE_URL, PORT
 from bot import database
+from bot.session import AUTHENTICATED
 from bot.api import setup_app
 from bot.handlers import auth, links, guest, stats, utils
 
@@ -18,6 +19,7 @@ logging.basicConfig(
 
 async def main() -> None:
     await database.init_db(DATABASE_URL)
+    AUTHENTICATED.update(await database.get_auth_user_ids())
 
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(storage=MemoryStorage())

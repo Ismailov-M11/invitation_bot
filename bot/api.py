@@ -2,7 +2,7 @@ from aiohttp import web
 
 from bot import database
 from bot.session import AUTHENTICATED
-from config import OWNER_CHAT_ID, OWNER_THREAD_ID, API_SECRET
+from config import API_SECRET
 
 CORS = {
     "Access-Control-Allow-Origin": "*",
@@ -49,21 +49,27 @@ async def _card_copied(request: web.Request) -> web.Response:
         if amount:
             lines.append(f"💰 Miqdor: *{amount}*")
         lines.append("\n✅ Karta raqami nusxalandi")
-
-        bot = request.app["bot"]
         text = "\n".join(lines)
 
-        if OWNER_CHAT_ID:
-            await bot.send_message(
-                OWNER_CHAT_ID,
-                text,
-                parse_mode="Markdown",
-                message_thread_id=OWNER_THREAD_ID,
-            )
+        bot = request.app["bot"]
 
-        for user_id in list(AUTHENTICATED):
+        # notify all authenticated users (in-memory + DB)
+        user_ids = set(AUTHENTICATED) | set(await database.get_auth_user_ids())
+        for uid in user_ids:
             try:
-                await bot.send_message(user_id, text, parse_mode="Markdown")
+                await bot.send_message(uid, text, parse_mode="Markdown")
+            except Exception:
+                pass
+
+        # notify all registered groups/topics
+        for g in await database.get_notify_groups():
+            thread = g["thread_id"] if g["thread_id"] != 0 else None
+            try:
+                await bot.send_message(
+                    g["chat_id"], text,
+                    parse_mode="Markdown",
+                    message_thread_id=thread,
+                )
             except Exception:
                 pass
 

@@ -79,6 +79,23 @@ async def init_db(dsn: str) -> None:
             copied_at  TIMESTAMPTZ  DEFAULT now()
         )
     """)
+    await asyncio.to_thread(_execute_sync, """
+        CREATE TABLE IF NOT EXISTS authenticated_users (
+            user_id    BIGINT PRIMARY KEY,
+            username   TEXT,
+            first_name TEXT,
+            added_at   TIMESTAMPTZ DEFAULT now()
+        )
+    """)
+    await asyncio.to_thread(_execute_sync, """
+        CREATE TABLE IF NOT EXISTS notify_groups (
+            chat_id    BIGINT  NOT NULL,
+            thread_id  INT     NOT NULL DEFAULT 0,
+            title      TEXT,
+            added_at   TIMESTAMPTZ DEFAULT now(),
+            PRIMARY KEY (chat_id, thread_id)
+        )
+    """)
 
 
 async def log_action(
@@ -120,6 +137,42 @@ async def get_card_copies(limit: int = 50) -> list[dict]:
         _fetchall_sync,
         "SELECT name, amount, guest_uz, guest_ru, copied_at FROM card_copies ORDER BY copied_at DESC LIMIT %s",
         (limit,),
+    )
+
+
+async def add_auth_user(user_id: int, username: str | None, first_name: str | None) -> None:
+    await asyncio.to_thread(
+        _execute_sync,
+        """INSERT INTO authenticated_users (user_id, username, first_name)
+           VALUES (%s, %s, %s)
+           ON CONFLICT (user_id) DO UPDATE
+           SET username=EXCLUDED.username, first_name=EXCLUDED.first_name""",
+        (user_id, username, first_name),
+    )
+
+
+async def get_auth_user_ids() -> list[int]:
+    rows = await asyncio.to_thread(
+        _fetchall_sync,
+        "SELECT user_id FROM authenticated_users",
+    )
+    return [r["user_id"] for r in rows]
+
+
+async def add_notify_group(chat_id: int, thread_id: int, title: str | None) -> None:
+    await asyncio.to_thread(
+        _execute_sync,
+        """INSERT INTO notify_groups (chat_id, thread_id, title)
+           VALUES (%s, %s, %s)
+           ON CONFLICT (chat_id, thread_id) DO UPDATE SET title=EXCLUDED.title""",
+        (chat_id, thread_id, title),
+    )
+
+
+async def get_notify_groups() -> list[dict]:
+    return await asyncio.to_thread(
+        _fetchall_sync,
+        "SELECT chat_id, thread_id FROM notify_groups",
     )
 
 
