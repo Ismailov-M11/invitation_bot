@@ -46,12 +46,13 @@ async def _card_copied(request: web.Request) -> web.Response:
             lines.append(f"🎫 Taklif: {taklif}")
         lines.append("\n✅ Karta raqami nusxalandi")
 
-        bot = request.app["bot"]
-        await bot.send_message(
-            OWNER_CHAT_ID,
-            "\n".join(lines),
-            parse_mode="Markdown",
-        )
+        if OWNER_CHAT_ID:
+            bot = request.app["bot"]
+            await bot.send_message(
+                OWNER_CHAT_ID,
+                "\n".join(lines),
+                parse_mode="Markdown",
+            )
 
         return web.json_response({"ok": True}, headers=CORS)
 
