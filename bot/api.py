@@ -29,6 +29,12 @@ async def _card_copied(request: web.Request) -> web.Response:
         if guest_uz:
             extra += f"|guest:{guest_uz}/{guest_ru}"
 
+        await database.log_card_copy(
+            name=name,
+            amount=amount or None,
+            guest_uz=guest_uz or None,
+            guest_ru=guest_ru or None,
+        )
         await database.log_action(
             user_id=0,
             username=None,

@@ -69,6 +69,16 @@ async def init_db(dsn: str) -> None:
             created_at TIMESTAMPTZ  DEFAULT now()
         )
     """)
+    await asyncio.to_thread(_execute_sync, """
+        CREATE TABLE IF NOT EXISTS card_copies (
+            id         SERIAL PRIMARY KEY,
+            name       TEXT         NOT NULL,
+            amount     TEXT,
+            guest_uz   TEXT,
+            guest_ru   TEXT,
+            copied_at  TIMESTAMPTZ  DEFAULT now()
+        )
+    """)
 
 
 async def log_action(
@@ -89,6 +99,27 @@ async def get_stats() -> list[dict]:
     return await asyncio.to_thread(
         _fetchall_sync,
         "SELECT action, COUNT(*) AS cnt FROM actions GROUP BY action ORDER BY cnt DESC",
+    )
+
+
+async def log_card_copy(
+    name: str,
+    amount: str | None = None,
+    guest_uz: str | None = None,
+    guest_ru: str | None = None,
+) -> None:
+    await asyncio.to_thread(
+        _execute_sync,
+        "INSERT INTO card_copies (name, amount, guest_uz, guest_ru) VALUES (%s,%s,%s,%s)",
+        (name, amount or None, guest_uz or None, guest_ru or None),
+    )
+
+
+async def get_card_copies(limit: int = 50) -> list[dict]:
+    return await asyncio.to_thread(
+        _fetchall_sync,
+        "SELECT name, amount, guest_uz, guest_ru, copied_at FROM card_copies ORDER BY copied_at DESC LIMIT %s",
+        (limit,),
     )
 
 

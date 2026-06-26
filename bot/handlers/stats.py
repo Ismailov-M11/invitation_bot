@@ -42,3 +42,31 @@ async def show_stats(message: Message) -> None:
             lines.append(f"• {name} ({user}) — {act}{extra}")
 
     await message.answer("\n".join(lines), parse_mode="Markdown")
+
+
+@router.message(F.text == "💌 To'yona ro'yxati")
+async def show_card_copies(message: Message) -> None:
+    if message.from_user.id not in AUTHENTICATED:
+        await message.answer("🔐 /start")
+        return
+
+    rows = await database.get_card_copies(50)
+
+    if not rows:
+        await message.answer("_Hali hech kim karta raqamini nusxalamagan_", parse_mode="Markdown")
+        return
+
+    lines = [f"💌 *To'yona niyati ro'yxati* ({len(rows)} ta)\n"]
+    for i, r in enumerate(rows, 1):
+        name = r["name"]
+        amount = f" — *{r['amount']}*" if r["amount"] else ""
+        guest = ""
+        if r["guest_uz"]:
+            guest = f"\n   🎫 _{r['guest_uz']}"
+            if r["guest_ru"]:
+                guest += f" / {r['guest_ru']}"
+            guest += "_"
+        dt = r["copied_at"].strftime("%d.%m %H:%M") if r["copied_at"] else ""
+        lines.append(f"{i}. *{name}*{amount} `{dt}`{guest}")
+
+    await message.answer("\n".join(lines), parse_mode="Markdown")
