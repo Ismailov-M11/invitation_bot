@@ -24,7 +24,7 @@ async def cmd_start(message: Message, state: FSMContext) -> None:
     )
 
 
-@router.message(AuthState.waiting_password, ~Command())
+@router.message(AuthState.waiting_password, F.text, ~F.text.startswith("/"))
 async def check_password(message: Message, state: FSMContext) -> None:
     if message.text == PASSWORD:
         AUTHENTICATED.add(message.from_user.id)
