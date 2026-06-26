@@ -11,6 +11,11 @@ CORS = {
 }
 
 
+def _fmt(s: str) -> str:
+    digits = "".join(c for c in s if c.isdigit())
+    return f"{int(digits):,}" if digits else s
+
+
 async def _options(request: web.Request) -> web.Response:
     return web.Response(headers=CORS)
 
@@ -21,14 +26,10 @@ async def _card_copied(request: web.Request) -> web.Response:
 
     try:
         data = await request.json()
-        name      = (data.get("name")     or "").strip() or "—"
-        amount    = (data.get("amount")   or "").strip()
-        guest_uz  = (data.get("guest_uz") or "").strip()
-        guest_ru  = (data.get("guest_ru") or "").strip()
-
-        extra = f"amount:{amount}" if amount else "amount:—"
-        if guest_uz:
-            extra += f"|guest:{guest_uz}/{guest_ru}"
+        name     = (data.get("name")     or "").strip() or "—"
+        amount   = (data.get("amount")   or "").strip()
+        guest_uz = (data.get("guest_uz") or "").strip()
+        guest_ru = (data.get("guest_ru") or "").strip()
 
         await database.log_card_copy(
             name=name,
@@ -36,20 +37,16 @@ async def _card_copied(request: web.Request) -> web.Response:
             guest_uz=guest_uz or None,
             guest_ru=guest_ru or None,
         )
-def fmt_amount(s: str) -> str:
-            digits = "".join(c for c in s if c.isdigit())
-            return f"{int(digits):,}" if digits else s
 
-        lines = ["💌 *Yangi to'yona niyati!*\n"]
-        lines.append(f"👤 Ism: *{name}*")
+        lines = ["\U0001f48c *Yangi to'yona niyati!*\n"]
+        lines.append(f"\U0001f464 Ism: *{name}*")
         if amount:
-            lines.append(f"💰 Miqdor: *{fmt_amount(amount)} so'm*")
+            lines.append(f"\U0001f4b0 Miqdor: *{_fmt(amount)} so'm*")
         lines.append("\n✅ Karta raqami nusxalandi")
         text = "\n".join(lines)
 
         bot = request.app["bot"]
 
-        # notify all authenticated users (in-memory + DB)
         user_ids = set(AUTHENTICATED) | set(await database.get_auth_user_ids())
         for uid in user_ids:
             try:
@@ -57,7 +54,6 @@ def fmt_amount(s: str) -> str:
             except Exception:
                 pass
 
-        # notify all registered groups/topics
         for g in await database.get_notify_groups():
             thread = g["thread_id"] if g["thread_id"] != 0 else None
             try:
