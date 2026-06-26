@@ -32,9 +32,5 @@ async def send_link(callback: CallbackQuery) -> None:
     version = int(callback.data.split(":")[1])
     url = f"{BASE_URL}?v={version}"
 
-    await callback.message.answer(
-        f"{VERSIONS[version]}\n\n"
-        f"🔗 Havola (nusxalash uchun bosing):\n`{url}`",
-        parse_mode="Markdown",
-    )
+    await callback.message.answer(url)
     await callback.answer("✅ Havola yuborildi!")

@@ -53,9 +53,8 @@ async def got_name_ru(message: Message, state: FSMContext) -> None:
 
     token = encode_guest(name_uz, name_ru)
 
-    lines = [f"✅ *{name_uz}* / *{name_ru}*\n\nHavolalar:\n"]
+    await message.answer(f"✅ *{name_uz}* / *{name_ru}*", parse_mode="Markdown")
     for v, label in VERSIONS.items():
         url = f"{BASE_URL}?v={v}&g={token}"
-        lines.append(f"{label}\n`{url}`\n")
-
-    await message.answer("\n".join(lines), parse_mode="Markdown", reply_markup=main_menu_kb())
+        await message.answer(f"{label}\n{url}")
+    await message.answer("👆 Yuqoridagi havolalardan birini tanlang", reply_markup=main_menu_kb())
