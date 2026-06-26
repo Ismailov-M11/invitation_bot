@@ -51,7 +51,7 @@ async def _card_copied(request: web.Request) -> web.Response:
         lines = ["💌 *Yangi to'yona niyati!*\n"]
         lines.append(f"👤 Ism: *{name}*")
         if amount:
-            lines.append(f"💰 Miqdor: *{fmt_amount(amount)}*")
+            lines.append(f"💰 Miqdor: *{fmt_amount(amount)} so'm*")
         lines.append("\n✅ Karta raqami nusxalandi")
         text = "\n".join(lines)
 
