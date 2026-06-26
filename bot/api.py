@@ -36,15 +36,7 @@ async def _card_copied(request: web.Request) -> web.Response:
             guest_uz=guest_uz or None,
             guest_ru=guest_ru or None,
         )
-        await database.log_action(
-            user_id=0,
-            username=None,
-            first_name=name,
-            action="card_copied",
-            extra=extra,
-        )
-
-        def fmt_amount(s: str) -> str:
+def fmt_amount(s: str) -> str:
             digits = "".join(c for c in s if c.isdigit())
             return f"{int(digits):,}" if digits else s
 

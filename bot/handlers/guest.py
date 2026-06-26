@@ -6,7 +6,6 @@ from bot.keyboards import main_menu_kb, cancel_kb
 from bot.session import AUTHENTICATED
 from bot.states import GuestState
 from bot.utils import encode_guest
-from bot import database
 from config import BASE_URL, VERSIONS
 
 router = Router()
@@ -60,10 +59,3 @@ async def got_name_ru(message: Message, state: FSMContext) -> None:
         lines.append(f"{label}\n`{url}`\n")
 
     await message.answer("\n".join(lines), parse_mode="Markdown", reply_markup=main_menu_kb())
-    await database.log_action(
-        user_id=message.from_user.id,
-        username=message.from_user.username,
-        first_name=message.from_user.first_name,
-        action="created_guest_link",
-        extra=f"{name_uz}|{name_ru}",
-    )
