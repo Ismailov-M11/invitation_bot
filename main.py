@@ -22,11 +22,11 @@ async def main() -> None:
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(storage=MemoryStorage())
 
+    dp.include_router(utils.router)   # первым — чтобы /id всегда работал
     dp.include_router(auth.router)
     dp.include_router(guest.router)
     dp.include_router(links.router)
     dp.include_router(stats.router)
-    dp.include_router(utils.router)
 
     # HTTP API server (runs alongside the bot)
     app = web.Application()

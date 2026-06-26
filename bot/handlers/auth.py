@@ -1,5 +1,5 @@
-from aiogram import Router
-from aiogram.filters import CommandStart
+from aiogram import Router, F
+from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
@@ -24,7 +24,7 @@ async def cmd_start(message: Message, state: FSMContext) -> None:
     )
 
 
-@router.message(AuthState.waiting_password)
+@router.message(AuthState.waiting_password, ~Command())
 async def check_password(message: Message, state: FSMContext) -> None:
     if message.text == PASSWORD:
         AUTHENTICATED.add(message.from_user.id)
