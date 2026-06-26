@@ -11,6 +11,7 @@ ACTION_NAMES = {
     "copied_link_v2": "🌙 Kechki havola nusxalandi",
     "copied_link_v3": "🎊 Ikki tadbir havolasi nusxalandi",
     "created_guest_link": "👤 Maxsus havola yaratildi",
+    "card_copied": "💌 Karta nusxalandi (to'yona niyati)",
 }
 
 

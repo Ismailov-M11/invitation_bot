@@ -1,11 +1,13 @@
 import asyncio
 import logging
 
+from aiohttp import web
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from config import BOT_TOKEN, DATABASE_URL
+from config import BOT_TOKEN, DATABASE_URL, PORT
 from bot import database
+from bot.api import setup_app
 from bot.handlers import auth, links, guest, stats
 
 logging.basicConfig(
@@ -20,12 +22,20 @@ async def main() -> None:
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(storage=MemoryStorage())
 
-    # Order matters: cancel handler in guest.py must catch F.text=="❌ Bekor qilish"
-    # before GuestState handlers — so guest router goes first after auth
     dp.include_router(auth.router)
     dp.include_router(guest.router)
     dp.include_router(links.router)
     dp.include_router(stats.router)
+
+    # HTTP API server (runs alongside the bot)
+    app = web.Application()
+    app["bot"] = bot
+    setup_app(app)
+
+    runner = web.AppRunner(app)
+    await runner.setup()
+    await web.TCPSite(runner, "0.0.0.0", PORT).start()
+    logging.info(f"API server: http://0.0.0.0:{PORT}")
 
     logging.info("Bot ishga tushdi ✅")
     await bot.delete_webhook(drop_pending_updates=True)
