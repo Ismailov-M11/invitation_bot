@@ -1,7 +1,7 @@
 from aiohttp import web
 
 from bot import database
-from config import OWNER_CHAT_ID, API_SECRET
+from config import OWNER_CHAT_ID, OWNER_THREAD_ID, API_SECRET
 
 CORS = {
     "Access-Control-Allow-Origin": "*",
@@ -52,6 +52,7 @@ async def _card_copied(request: web.Request) -> web.Response:
                 OWNER_CHAT_ID,
                 "\n".join(lines),
                 parse_mode="Markdown",
+                message_thread_id=OWNER_THREAD_ID,
             )
 
         return web.json_response({"ok": True}, headers=CORS)

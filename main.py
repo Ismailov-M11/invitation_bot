@@ -8,7 +8,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from config import BOT_TOKEN, DATABASE_URL, PORT
 from bot import database
 from bot.api import setup_app
-from bot.handlers import auth, links, guest, stats
+from bot.handlers import auth, links, guest, stats, utils
 
 logging.basicConfig(
     level=logging.INFO,
@@ -26,6 +26,7 @@ async def main() -> None:
     dp.include_router(guest.router)
     dp.include_router(links.router)
     dp.include_router(stats.router)
+    dp.include_router(utils.router)
 
     # HTTP API server (runs alongside the bot)
     app = web.Application()
