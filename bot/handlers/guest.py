@@ -1,6 +1,6 @@
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import Message, URLInputFile
 
 from bot.keyboards import main_menu_kb, cancel_kb
 from bot.session import AUTHENTICATED
@@ -9,6 +9,8 @@ from bot.utils import encode_guest
 from config import BASE_URL, VERSIONS
 
 router = Router()
+
+_OG = f"{BASE_URL}/og.jpg"
 
 
 @router.message(F.text == "❌ Bekor qilish")
@@ -53,8 +55,14 @@ async def got_name_ru(message: Message, state: FSMContext) -> None:
 
     token = encode_guest(name_uz, name_ru)
 
-    await message.answer(f"✅ *{name_uz}* / *{name_ru}*", parse_mode="Markdown")
+    lines = [f"✅ *{name_uz}* / *{name_ru}*\n"]
     for v, label in VERSIONS.items():
         url = f"{BASE_URL}?v={v}&g={token}"
-        await message.answer(f"{label}\n{url}")
-    await message.answer("👆 Yuqoridagi havolalardan birini tanlang", reply_markup=main_menu_kb())
+        lines.append(f"{label}\n{url}")
+
+    await message.answer_photo(
+        photo=URLInputFile(_OG),
+        caption="\n\n".join(lines),
+        parse_mode="Markdown",
+        reply_markup=main_menu_kb(),
+    )

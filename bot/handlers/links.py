@@ -1,11 +1,14 @@
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
+from aiogram.types import URLInputFile
 
 from bot.keyboards import versions_kb
 from bot.session import AUTHENTICATED
 from config import BASE_URL, VERSIONS
 
 router = Router()
+
+_OG = f"{BASE_URL}/og.jpg"
 
 
 @router.message(F.text == "🔗 Universal havolalar")
@@ -32,5 +35,8 @@ async def send_link(callback: CallbackQuery) -> None:
     version = int(callback.data.split(":")[1])
     url = f"{BASE_URL}?v={version}"
 
-    await callback.message.answer(url)
+    await callback.message.answer_photo(
+        photo=URLInputFile(_OG),
+        caption=url,
+    )
     await callback.answer("✅ Havola yuborildi!")
