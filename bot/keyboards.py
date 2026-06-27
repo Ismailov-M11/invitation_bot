@@ -10,7 +10,6 @@ def main_menu_kb() -> ReplyKeyboardMarkup:
         keyboard=[
             [KeyboardButton(text="🔗 Universal havolalar")],
             [KeyboardButton(text="👤 Maxsus havola yaratish")],
-            [KeyboardButton(text="💌 To'yona ro'yxati")],
         ],
         resize_keyboard=True,
     )
